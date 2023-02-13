@@ -1,0 +1,50 @@
+version: '3.4'
+
+networks:
+  dev:
+    driver: bridge
+volumes:
+  data:
+
+services:
+  app:
+    #platform: linux/amd64
+    image: dauinvest-test:v1
+    hostname: app
+    depends_on:
+      - dauinvest-db
+    ports:
+      - "80:80"
+      - "443:443"
+    container_name: dauinvest-app
+    build:
+      context: ../.
+      dockerfile: DauInvestTest.WebApp/Dockerfile
+    environment:
+      - ConnectionStrings__Default=host=dauinvest-db;port=5432;database=dauinvest-db;username=postgres;password=postgres;Pooling=true;
+      - OData__OpenApiServiceRoot=dauinvest.test
+      - JWT__ValidAudience=dauinvest.test
+      - JWT__ValidIssuer=dauinvest.test
+      - JWT__Secret=JWTAuthenticationHIGHsecuredPasswordVVVp1OH7Xzyr
+      - JWT__TokenValidityInMinutes=5
+      - JWT__RefreshTokenValidityInDays=1
+      - Files__Folder=.
+    networks:
+      - dev
+
+  dauinvest-db:
+    image: postgres:latest
+    container_name: dauinvest-db
+    hostname: dauinvest-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=dauinvest-db
+      - POSTGTES_HOST=dauinvest-db
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes:
+      - data:/var/lib/postgresql/data/ 
+    networks:
+      - dev
